@@ -1,0 +1,32 @@
+
+declare
+
+data_account com_pak.Acc_Table;
+cursor accdata is 
+    select * from account ;
+    r number;
+begin
+data_account :=com_pak.Acc_Table();
+for record1 in accdata loop
+data_account.extend;
+COM_PAK.Calcule_TVA(record1.avail_balance,r);
+record1.avail_balance := r;
+if record1.Status='Closed' then
+    RAISE COM_PAK.AccountClosed;
+end if;
+data_account(data_account.last) := record1;
+end loop;
+
+
+for i in data_account.first .. data_account.last loop
+
+DBMS_OUTPUT.PUT_LINE(data_account(i).avail_balance);
+end loop;
+
+DBMS_OUTPUT.PUT_LINE(data_account.count);
+
+EXCEPTION
+    when COM_PAK.AccountClosed then
+    DBMS_OUTPUT.PUT_LINE('le compte est fermé');
+
+end;

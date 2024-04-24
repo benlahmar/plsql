@@ -1,0 +1,48 @@
+/*
+une fonction qui retourn la somme des transactions d'un client entre deux dates
+gerer les exception possible
+
+
+*/
+CREATE OR REPLACE FUNCTION rapport2(idacc account.account_id%type, ddebut acc_transaction.txn_date%type,dfin acc_transaction.txn_date%type ) RETURN number AS 
+
+som acc_transaction.amount%type;
+notfountexception EXCEPTION;
+PRAGMA EXCEPTION_INIT (
+	    notfountexception, -2292);
+
+BEGIN
+
+    select sum(amount) into som from acc_transaction 
+    where 
+    txn_date between ddebut and dfin and
+    account_id=idacc;
+
+    if SQL%ROWCOUNT=1 then
+        RAISE notfountexception;
+    end if;
+      
+  RETURN som;
+  
+  EXCEPTION
+    when notfountexception then     
+    	dbms_output.put_line('******exception de la fonction****');        
+
+END rapport2;
+
+set SERVEROUTPUT on
+declare
+x acc_transaction.amount%type;
+
+
+begin 
+x := rapport2(1,sysdate-3456,sysdate);
+dbms_output.put_line('******'||x);
+dbms_output.put_line(SQL%ROWCOUNT);
+
+EXCEPTION
+when OTHERS then
+dbms_output.put_line('Exception capture lors de lappel'|| SQLCODE);
+end;
+
+select * from acc_transaction where amount > rapport2(1,sysdate-3456,sysdate);
